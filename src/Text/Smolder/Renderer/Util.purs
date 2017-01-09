@@ -15,6 +15,7 @@ import Data.Tuple (Tuple(Tuple))
 data Node e
   = Element String (StrMap String) (CatList (Markup.EventHandler e)) (List (Node e))
   | Text String
+  | RawFragment String
 
 renderMarkup :: forall a e. Markup.MarkupM e a -> List (Node e)
 renderMarkup (Markup.Element name (Just children) attrs events rest) =
@@ -22,6 +23,7 @@ renderMarkup (Markup.Element name (Just children) attrs events rest) =
 renderMarkup (Markup.Element name Nothing attrs events rest) =
   Element name (renderAttrs attrs) events Nil : renderMarkup rest
 renderMarkup (Markup.Content text rest) = Text text : renderMarkup rest
+renderMarkup (Markup.RawFragment text rest) = RawFragment text : renderMarkup rest
 renderMarkup (Markup.Return _) = Nil
 
 renderAttrs :: CatList Markup.Attr -> StrMap String

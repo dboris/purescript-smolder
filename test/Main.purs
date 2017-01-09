@@ -5,7 +5,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Text.Smolder.HTML (html, head, meta, link, title, body, h1, p)
 import Text.Smolder.HTML.Attributes (lang, charset, httpEquiv, content, name, rel, href)
-import Text.Smolder.Markup (on, (#!), Markup, text, (!))
+import Text.Smolder.Markup (on, (#!), Markup, text, unsafeRawText, (!))
 import Text.Smolder.Renderer.String (render)
 
 doc :: forall a e. Markup (a -> Eff (console :: CONSOLE | e) Unit)
@@ -20,6 +20,7 @@ doc = html ! lang "en" $ do
   body $ do
     h1 #! on "click" (\_ -> log "click") $ text "OMG HAI LOL"
     p $ text "This is clearly the best HTML DSL ever invented.<script>alert(\"lol pwned\");</script>"
+    p $ unsafeRawText "This is <strong>clearly<strong> the <em>best</em> HTML DSL ever invented."
 
 main :: Eff (console :: CONSOLE) Unit
 main = log $ render doc

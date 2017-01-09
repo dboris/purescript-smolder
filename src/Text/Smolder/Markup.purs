@@ -6,6 +6,7 @@ module Text.Smolder.Markup
   , parent
   , leaf
   , text
+  , unsafeRawText
   , Attribute()
   , class Attributable
   , with
@@ -32,6 +33,7 @@ data EventHandler e = EventHandler String e
 data MarkupM e a
   = Element String (Maybe (Markup e)) (CatList Attr) (CatList (EventHandler e)) (MarkupM e a)
   | Content String (MarkupM e a)
+  | RawFragment String (MarkupM e a)
   | Return a
 
 type Markup e = MarkupM e Unit
@@ -45,6 +47,9 @@ leaf el = Element el Nothing mempty mempty (Return unit)
 text :: forall e. String -> Markup e
 text s = Content s (Return unit)
 
+unsafeRawText :: forall e. String -> Markup e
+unsafeRawText s = RawFragment s (Return unit)
+
 instance semigroupMarkupM :: Semigroup (MarkupM e a) where
   append x y = x *> y
 
@@ -54,6 +59,7 @@ instance monoidMarkup :: Monoid (MarkupM e Unit) where
 instance functorMarkupM :: Functor (MarkupM e) where
   map f (Element el kids attrs events rest) = Element el kids attrs events (map f rest)
   map f (Content s rest) = Content s (map f rest)
+  map f (RawFragment s rest) = RawFragment s (map f rest)
   map f (Return a) = Return (f a)
 
 instance applyMarkupM :: Apply (MarkupM e) where
@@ -65,6 +71,7 @@ instance applicativeMarkupM :: Applicative (MarkupM e) where
 instance bindMarkupM :: Bind (MarkupM e) where
   bind (Element el kids attrs events rest) f = Element el kids attrs events (bind rest f)
   bind (Content s rest) f = Content s (bind rest f)
+  bind (RawFragment s rest) f = RawFragment s (bind rest f)
   bind (Return a) f = f a
 
 instance monadMarkupM :: Monad (MarkupM e)
